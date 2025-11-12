@@ -12,14 +12,13 @@ services:
       - data:/convex/data
     environment:
       - SERVICE_URL_BACKEND_3210
+      - SERVICE_URL_SITE_3211
       - INSTANCE_NAME=${INSTANCE_NAME:-self-hosted-convex}
       - INSTANCE_SECRET=${SERVICE_HEX_32_SECRET}
       - CONVEX_RELEASE_VERSION_DEV=${CONVEX_RELEASE_VERSION_DEV:-}
       - ACTIONS_USER_TIMEOUT_SECS=${ACTIONS_USER_TIMEOUT_SECS:-}
-      # URL of the Convex API as accessed by the client/frontend.
-      - CONVEX_CLOUD_ORIGIN=${SERVICE_URL_CONVEX}
-      # URL of Convex HTTP actions as accessed by the client/frontend.
-      - CONVEX_SITE_ORIGIN=${SERVICE_URL_BACKEND}
+      - CONVEX_CLOUD_ORIGIN=${SERVICE_URL_BACKEND}
+      - CONVEX_SITE_ORIGIN=${SERVICE_URL_SITE}
       - DATABASE_URL=${DATABASE_URL:-}
       - DISABLE_BEACON=${DISABLE_BEACON:?false}
       - REDACT_LOGS_TO_CLIENT=${REDACT_LOGS_TO_CLIENT:?false}
@@ -59,3 +58,6 @@ services:
       test: wget -qO- http://127.0.0.1:6791/
       interval: 5s
       start_period: 5s
+
+volumes:
+  data: null
