@@ -12,13 +12,13 @@ services:
       - data:/convex/data
     environment:
       - SERVICE_URL_BACKEND_3210
-      - SERVICE_URL_SITE_3211
+      # - SERVICE_URL_SITE_3211 (There's currently no way to have a single service with two ports have urls generated for on coolify.)
       - INSTANCE_NAME=${INSTANCE_NAME:-self-hosted-convex}
       - INSTANCE_SECRET=${SERVICE_HEX_32_SECRET}
       - CONVEX_RELEASE_VERSION_DEV=${CONVEX_RELEASE_VERSION_DEV:-}
       - ACTIONS_USER_TIMEOUT_SECS=${ACTIONS_USER_TIMEOUT_SECS:-}
       - CONVEX_CLOUD_ORIGIN=${SERVICE_URL_BACKEND}
-      - CONVEX_SITE_ORIGIN=${SERVICE_URL_SITE}
+      - CONVEX_SITE_ORIGIN=${SERVICE_URL_SITE} # Must be manually filled in for the time being
       - DATABASE_URL=${DATABASE_URL:-}
       - DISABLE_BEACON=${DISABLE_BEACON:?false}
       - REDACT_LOGS_TO_CLIENT=${REDACT_LOGS_TO_CLIENT:?false}
