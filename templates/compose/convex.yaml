@@ -7,7 +7,7 @@
 
 services:
   backend:
-    image: ghcr.io/get-convex/convex-backend:00bd92723422f3bff968230c94ccdeb8c1719832
+    image: ghcr.io/get-convex/convex-backend:latest
     volumes:
       - data:/convex/data
     environment:
@@ -16,14 +16,12 @@ services:
       - INSTANCE_SECRET=${SERVICE_HEX_32_SECRET}
       - CONVEX_RELEASE_VERSION_DEV=${CONVEX_RELEASE_VERSION_DEV:-}
       - ACTIONS_USER_TIMEOUT_SECS=${ACTIONS_USER_TIMEOUT_SECS:-}
-      # URL of the Convex API as accessed by the client/frontend.
-      - CONVEX_CLOUD_ORIGIN=${SERVICE_URL_DASHBOARD}
-      # URL of Convex HTTP actions as accessed by the client/frontend.
-      - CONVEX_SITE_ORIGIN=${SERVICE_URL_BACKEND}
+      - CONVEX_CLOUD_ORIGIN=${SERVICE_URL_BACKEND_3210}
+      - CONVEX_SITE_ORIGIN=${SERVICE_URL_SITE}
       - DATABASE_URL=${DATABASE_URL:-}
-      - DISABLE_BEACON=${DISABLE_BEACON:?false}
-      - REDACT_LOGS_TO_CLIENT=${REDACT_LOGS_TO_CLIENT:?false}
-      - DO_NOT_REQUIRE_SSL=${DO_NOT_REQUIRE_SSL:?true}
+      - DISABLE_BEACON=${DISABLE_BEACON:-false}
+      - REDACT_LOGS_TO_CLIENT=${REDACT_LOGS_TO_CLIENT:-false}
+      - DO_NOT_REQUIRE_SSL=${DO_NOT_REQUIRE_SSL:-true}
       - POSTGRES_URL=${POSTGRES_URL:-}
       - MYSQL_URL=${MYSQL_URL:-}
       - RUST_LOG=${RUST_LOG:-info}
@@ -46,16 +44,42 @@ services:
       interval: 5s
       start_period: 10s
 
-  dashboard:
-    image: ghcr.io/get-convex/convex-dashboard:33cef775a8a6228cbacee4a09ac2c4073d62ed13
+  site:
+    image: nginx:alpine
     environment:
-      - SERVICE_URL_DASHBOARD_6791
-      # URL of the Convex API as accessed by the dashboard (browser).
-      - NEXT_PUBLIC_DEPLOYMENT_URL=${SERVICE_URL_BACKEND}
+      - SERVICE_URL_SITE
+      - BACKEND_HOST=backend
+      - BACKEND_PORT=3211
+    command: >
+      sh -c "echo 'server {
+        listen 80;
+        location / {
+          proxy_pass http://backend:3211;
+          proxy_set_header Host \$$host;
+          proxy_set_header X-Real-IP \$$remote_addr;
+          proxy_set_header X-Forwarded-For \$$proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto \$$scheme;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade \$$http_upgrade;
+          proxy_set_header Connection \"upgrade\";
+        }
+      }' > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
     depends_on:
       backend:
         condition: service_healthy
+      
+  dashboard:
+    image: ghcr.io/get-convex/convex-dashboard:latest
+    environment:
+      - SERVICE_URL_DASHBOARD_6791
+      - NEXT_PUBLIC_DEPLOYMENT_URL=${SERVICE_URL_BACKEND_3210}
     healthcheck:
       test: wget -qO- http://127.0.0.1:6791/
       interval: 5s
       start_period: 5s
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  data:
