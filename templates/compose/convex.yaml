@@ -7,7 +7,7 @@
 
 services:
   backend:
-    image: ghcr.io/get-convex/convex-backend:latest
+    image: ghcr.io/get-convex/convex-backend:69a1969a1f307edd7a6e452606925bb004ab3622
     volumes:
       - convex-data:/convex/data
     environment:
@@ -67,9 +67,9 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-      
+
   dashboard:
-    image: ghcr.io/get-convex/convex-dashboard:latest
+    image: ghcr.io/get-convex/convex-dashboard:3c6bd3e32b0053aefc60ad8af87c803aabf1732f
     environment:
       - SERVICE_URL_DASHBOARD_6791
       - NEXT_PUBLIC_DEPLOYMENT_URL=${SERVICE_URL_BACKEND}
@@ -80,6 +80,3 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-
-volumes:
-  convex-data:
